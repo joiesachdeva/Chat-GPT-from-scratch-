@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+data/raw_repos/
+data/code_corpus.txt
+data/train.bin
+data/val.bin
+tokenizer/vocab.json
+tokenizer/merges.txt
+checkpoint_*.pt
+*.pt
