@@ -73,16 +73,24 @@ def main():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
+
+    best_val_loss = float("inf")
+
     for it in range(MAX_ITERS):
         if it % EVAL_INTERVAL == 0 or it == MAX_ITERS - 1:
             losses = estimate_loss(model, train_data, val_data)
             print(f"step {it}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+            if losses["val"] < best_val_loss:
+                best_val_loss = losses["val"]
+                torch.save(model.state_dict(), BASE_DIR / "checkpoint_best.pt")
+                print(f"  -> new best val loss, saved checkpoint")
 
         xb, yb = get_batch("train", train_data, val_data)
         logits, loss = model(xb, yb)
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
+   
 
     torch.save(model.state_dict(), BASE_DIR / "checkpoint_final.pt")
     print("Training complete. Saved checkpoint_final.pt")
