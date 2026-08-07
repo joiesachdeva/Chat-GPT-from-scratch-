@@ -55,7 +55,7 @@ def main():
     parser.add_argument("--top_k", type=int, default=50)
     args = parser.parse_args()
 
-    tokenizer = load_tokenizer
+    tokenizer = load_tokenizer()
     vocab_size = tokenizer.get_vocab_size()
     model = load_model(BASE_DIR / args.checkpoint, vocab_size)
 
