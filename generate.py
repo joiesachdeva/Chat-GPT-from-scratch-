@@ -37,12 +37,18 @@ def load_model(checkpoint_path, vocab_size):
     return model
 
 
-def is_valid_python(code_str: str) -> bool:
-    try:
-        ast.parse(code_str)
-        return True
-    except SyntaxError:
-        return False
+def longest_valid_prefix(code_str: str):
+    """Find the longest prefix of code_str that parses as valid Python.
+    Tries cutting at each blank-line boundary, from longest to shortest."""
+    chunks = code_str.split("\n\n")
+    for i in range(len(chunks), 0, -1):
+        candidate = "\n\n".join(chunks[:i])
+        try:
+            ast.parse(candidate)
+            return candidate, True
+        except SyntaxError:
+            continue
+    return "", False
 
 
 def main():
@@ -68,15 +74,16 @@ def main():
             idx, max_new_tokens=args.max_new_tokens,
             temperature=args.temperature, top_k=args.top_k,
         )
-
         text = tokenizer.decode(out_ids[0].tolist())
-        valid = is_valid_python(text)
-        valid_count += valid
-        print(f"\n--- Sample {i+1} (valid_python={valid}) ---")
+        valid_prefix, found_valid = longest_valid_prefix(text)
+        valid_count += found_valid
+        print(f"\n--- Sample {i+1} (has_valid_prefix={found_valid}) ---")
         print(text)
+        if found_valid:
+            print(f"[Longest valid prefix: {len(valid_prefix)} chars]")
 
     validity_pct = 100 * valid_count / args.num_samples
-    print(f"\n\nSyntax validity: {valid_count}/{args.num_samples} ({validity_pct:.1f}%)")
+    print(f"\n\nSamples with at least one valid-Python prefix: {valid_count}/{args.num_samples} ({validity_pct:.1f}%)")
 
 if __name__ == "__main__":
     main()

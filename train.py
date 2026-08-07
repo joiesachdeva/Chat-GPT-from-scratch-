@@ -2,6 +2,7 @@ import pathlib
 import numpy as np
 import torch
 from model import GPT
+import os 
 
 BATCH_SIZE = 32  # how many independent sequences we process in parallel per training step 
 BLOCK_SIZE = 256 # how many previous tokens the model can look aat when predicting the next one 
@@ -15,6 +16,8 @@ EVAL_INTERVAL = 250   # how often we pause to measure loss
 EVAL_ITERS = 100      # averaging over multiple batches gives us less noisy loss estimate than one 
 
 BASE_DIR = pathlib.Path(__file__).parent
+CHECKPOINT_DIR = pathlib.Path(os.environ.get("CHECKPOINT_DIR", BASE_DIR))
+CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(1337)
@@ -82,7 +85,7 @@ def main():
             print(f"step {it}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
             if losses["val"] < best_val_loss:
                 best_val_loss = losses["val"]
-                torch.save(model.state_dict(), BASE_DIR / "checkpoint_best.pt")
+                torch.save(model.state_dict(), CHECKPOINT_DIR / "checkpoint_best.pt")
                 print(f"  -> new best val loss, saved checkpoint")
 
         xb, yb = get_batch("train", train_data, val_data)
@@ -92,7 +95,7 @@ def main():
         optimizer.step()
    
 
-    torch.save(model.state_dict(), BASE_DIR / "checkpoint_final.pt")
+    torch.save(model.state_dict(), CHECKPOINT_DIR / "checkpoint_final.pt")
     print("Training complete. Saved checkpoint_final.pt")
 
 if __name__ == "__main__":
